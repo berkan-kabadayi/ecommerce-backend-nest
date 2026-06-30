@@ -26,15 +26,16 @@ model User {
 }
 
 model Product {
-  id          String    @id @default(uuid())
-  name        String
-  description String
-  price       Decimal
-  stock       Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  category    Category? @relation(fields: [categoryId], references: [id])
-  categoryId  String?
+  id            String         @id @default(uuid())
+  name          String
+  description   String
+  price         Decimal
+  stock         Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  category      Category?      @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  productPhotos ProductPhoto[]
 }
 
 model Category {
@@ -45,4 +46,16 @@ model Category {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
+}
+
+model ProductPhoto {
+  id        String   @id @default(uuid())
+  url       String
+  size      Int
+  isPrimary Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }

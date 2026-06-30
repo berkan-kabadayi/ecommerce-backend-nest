@@ -11,7 +11,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 
-@Controller('api/products')
+@Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
@@ -24,12 +24,12 @@ export class ProductController {
   findAll() {
     return this.productService.findAll();
   }
-  @Get(':id') // /api/products/123 gibi bir ID ile erişim sağlar
+  @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productService.findOne(id);
   }
 
-  @Patch(':id') // Kısmi güncelleme için kullanılır
+  @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(id, updateProductDto);
   }

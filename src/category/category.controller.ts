@@ -11,13 +11,13 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-@Controller('api/categories')
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  create(@Body() CreateCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(CreateCategoryDto);
+  create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoryService.create(createCategoryDto);
   }
 
   @Get()
@@ -25,7 +25,7 @@ export class CategoryController {
     return this.categoryService.findAll();
   }
 
-  @Get()
+  @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(id);
   }
