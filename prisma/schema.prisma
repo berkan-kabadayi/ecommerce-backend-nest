@@ -26,16 +26,17 @@ model User {
 }
 
 model Product {
-  id            String         @id @default(uuid())
-  name          String
-  description   String
-  price         Decimal
-  stock         Int
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  category      Category?      @relation(fields: [categoryId], references: [id])
-  categoryId    String?
-  productPhotos ProductPhoto[]
+  id              String           @id @default(uuid())
+  name            String
+  description     String
+  price           Decimal
+  stock           Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  categoryId      String?
+  productPhotos   ProductPhoto[]
+  productComments ProductComment[]
 }
 
 model Category {
@@ -58,4 +59,16 @@ model ProductPhoto {
   updatedAt DateTime @updatedAt
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductComment {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  title     String
+  content   String?
+  rating    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
