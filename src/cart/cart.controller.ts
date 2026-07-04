@@ -1,34 +1,70 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { CartService } from './cart.service';
-import { CreateCartDto } from './dto/create-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
+import { CreateCartItemDto } from './dto/create-cart.dto';
+import { UpdateCartItemDto } from './dto/update-cart.dto';
 
+import { AuthGuard, AuthRequest } from '../auth/guards/auth/auth.guard';
 @Controller('cart')
+@UseGuards(AuthGuard)
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Post()
-  create(@Body() createCartDto: CreateCartDto) {
-    return this.cartService.create(createCartDto);
+  async create(
+    @Req() req: AuthRequest,
+    @Body() createCartItemDto: CreateCartItemDto,
+  ) {
+    const userId = req.user!.sub;
+    const newCartItem = await this.cartService.create(
+      userId,
+      createCartItemDto,
+    );
+    return newCartItem;
   }
 
   @Get()
-  findAll() {
-    return this.cartService.findAll();
+  async findAll(@Req() req: AuthRequest) {
+    const userId = req.user!.sub;
+    const cartItems = await this.cartService.findAll(userId);
+    return cartItems;
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartService.findOne(+id);
+  @Delete('clear')
+  async removeAll(@Req() req: AuthRequest) {
+    const userId = req.user!.sub;
+    const result = await this.cartService.removeAll(userId);
+    return result;
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartService.update(+id, updateCartDto);
+  async update(
+    @Req() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() updateCartItemDto: UpdateCartItemDto,
+  ) {
+    const userId = req.user!.sub;
+    const updatedCartItem = await this.cartService.update(
+      userId,
+      id,
+      updateCartItemDto,
+    );
+    return updatedCartItem;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartService.remove(+id);
+  async remove(@Req() req: AuthRequest, @Param('id') id: string) {
+    const userId = req.user!.sub;
+    const deletedCartItem = await this.cartService.remove(userId, id);
+    return deletedCartItem;
   }
 }
