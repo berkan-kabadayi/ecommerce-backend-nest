@@ -10,6 +10,7 @@ import { CategoryModule } from './category/category.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductPhotoModule } from './product-photo/product-photo.module';
 import { CommentModule } from './comment/comment.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CommentModule } from './comment/comment.module';
     PrismaModule,
     ProductPhotoModule,
     CommentModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
