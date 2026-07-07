@@ -14,7 +14,7 @@ import { CreateCartItemDto } from './dto/create-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
 
 import { AuthGuard, AuthRequest } from '../auth/guards/auth/auth.guard';
-@Controller('cart')
+@Controller('cart-items')
 @UseGuards(AuthGuard)
 export class CartController {
   constructor(private readonly cartService: CartService) {}
@@ -39,7 +39,7 @@ export class CartController {
     return cartItems;
   }
 
-  @Delete('clear')
+  @Delete()
   async removeAll(@Req() req: AuthRequest) {
     const userId = req.user!.sub;
     const result = await this.cartService.removeAll(userId);

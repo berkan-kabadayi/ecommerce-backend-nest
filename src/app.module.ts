@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProductPhotoModule } from './product-photo/product-photo.module';
 import { CommentModule } from './comment/comment.module';
 import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CartModule } from './cart/cart.module';
     ProductPhotoModule,
     CommentModule,
     CartModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

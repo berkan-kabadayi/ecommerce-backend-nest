@@ -24,6 +24,7 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   cartItems CartItem[]
+  orders    Order[]
 }
 
 model Product {
@@ -31,7 +32,7 @@ model Product {
   name            String
   description     String
   price           Decimal
-  stock           Int
+  stock_quantity  Int
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   category        Category?        @relation(fields: [categoryId], references: [id])
@@ -39,6 +40,7 @@ model Product {
   productPhotos   ProductPhoto[]
   productComments ProductComment[]
   cartItems       CartItem[]
+  orderItems      OrderItem[]
 }
 
 model Category {
@@ -61,6 +63,8 @@ model ProductPhoto {
   updatedAt DateTime @updatedAt
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@map("product_photos")
 }
 
 model ProductComment {
@@ -89,4 +93,41 @@ model CartItem {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("cart_items")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  userId     String      @map("user_id")
+  totalPrice Decimal     @map("total_price")
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  productId String   @map("product_id")
+  quantity  Int
+  unitPrice Decimal  @map("unit_price")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
 }

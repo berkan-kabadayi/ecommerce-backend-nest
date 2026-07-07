@@ -32,7 +32,7 @@ export class ProductService {
 
       price: new Prisma.Decimal(createProductDto.price),
 
-      stock: createProductDto.stock,
+      stock_quantity: createProductDto.stock,
       category: createProductDto.categoryId
         ? { connect: { id: createProductDto.categoryId } }
         : undefined,
@@ -78,7 +78,7 @@ export class ProductService {
       price: updateProductDto.price
         ? new Prisma.Decimal(updateProductDto.price.toString())
         : undefined,
-      stock: updateProductDto.stock,
+      stock_quantity: updateProductDto.stock,
       category: updateProductDto.categoryId
         ? { connect: { id: updateProductDto.categoryId } }
         : undefined,
