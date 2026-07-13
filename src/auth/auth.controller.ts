@@ -14,6 +14,7 @@ import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { JwtService } from '@nestjs/jwt';
 
 export class LocalLoginDto {
   @IsString()
@@ -37,6 +38,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
   ) {}
 
   @Post('register')

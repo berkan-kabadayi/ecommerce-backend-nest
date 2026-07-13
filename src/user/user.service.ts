@@ -37,6 +37,7 @@ export class UserService {
         username: true,
         email: true,
         fullName: true,
+        refreshToken: true,
         createdAt: true,
       },
     });
