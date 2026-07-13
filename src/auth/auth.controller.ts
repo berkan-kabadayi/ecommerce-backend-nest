@@ -7,6 +7,7 @@ import {
   Get,
   UseGuards,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
@@ -63,6 +64,25 @@ export class AuthController {
   @Post('logout')
   async logout(@Req() req: AuthenticatedRequest) {
     await this.userService.updateRefreshToken(req.user.sub, null);
-    return { message: 'Başarıyla çıkış yapıldı' };
+    return { message: 'The exit was successful.' };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  async refresh(@Body('refresh_token') refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh tokens must be provided.');
+    }
+
+    try {
+      const payload: { sub: string; username: string } =
+        await this.jwtService.verifyAsync(refreshToken, {
+          secret: process.env.JWT_SECRET || 'secret_key',
+        });
+
+      return this.authService.refresh(payload.sub, refreshToken);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 }
