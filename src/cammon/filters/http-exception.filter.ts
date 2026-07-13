@@ -14,26 +14,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // 1. Durum kodunu belirliyoruz
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    // 2. Hatadan gelen mesajı 'any' veya gereksiz assertion kullanmadan ayıklıyoruz
     let message = 'Internal server error';
 
     if (exception instanceof HttpException) {
       const resContent = exception.getResponse();
 
-      // resContent'i en başta geniş bir obje formatına cast ediyoruz, böylece ESLint 'unnecessary' uyarısı vermiyor
       if (typeof resContent === 'object' && resContent !== null) {
         const errorBody = resContent as Record<string, unknown>;
 
-        // 'message' alanının varlığını güvenle kontrol edip işlem yapıyoruz
         if ('message' in errorBody) {
           message = Array.isArray(errorBody.message)
-            ? errorBody.message.join(', ') // class-validator dizilerini birleştir
+            ? errorBody.message.join(', ')
             : String(errorBody.message);
         } else {
           message = exception.message;
@@ -46,7 +42,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message = exception.message;
     }
 
-    // 3. SBK Studio standartlarında pırıl pırıl, ortak hata çıktısı:
     response.status(status).json({
       success: false,
       statusCode: status,
