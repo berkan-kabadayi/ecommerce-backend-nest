@@ -3,21 +3,21 @@ import { IsString, IsEmail, MinLength, IsNotEmpty } from 'class-validator';
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsString()
   @IsNotEmpty()
-  surname: string;
+  surname!: string;
 
   @IsString()
   @IsNotEmpty()
-  username: string;
+  username!: string;
 
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(6, { message: 'Parola en az 6 karakter olmalıdır' })
-  password: string;
+  password!: string;
 }

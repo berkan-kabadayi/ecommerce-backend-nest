@@ -1,27 +1,22 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Get,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { AuthGuard, AuthRequest } from '../auth/guards/auth/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('auth')
+interface AuthenticatedRequest extends Request {
+  user: {
+    sub: string;
+    username: string;
+  };
+}
+
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.userService.register(createUserDto);
-  }
-
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req: AuthRequest) {
-    return req.user;
+  async getProfile(@Req() req: AuthenticatedRequest) {
+    return this.userService.findById(req.user.sub);
   }
 }
