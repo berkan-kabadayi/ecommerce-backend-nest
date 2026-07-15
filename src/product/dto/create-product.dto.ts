@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsUUID,
   IsNumber,
-  IsPositive,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -16,21 +15,7 @@ export class CreateProductDto {
 
   @IsString()
   @IsNotEmpty()
-  description!: string;
-
-  @IsNumber()
-  @IsPositive()
-  @Type(() => Number)
-  price!: number;
-
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  stock!: number;
-
-  @IsOptional()
-  @IsUUID()
-  categoryId?: string;
+  slug!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -39,6 +24,18 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   longDescription!: string;
-  stockQuantity: number | undefined;
-  slug!: string;
+
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  price!: number;
+
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  stockQuantity!: number;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 }
