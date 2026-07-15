@@ -39,9 +39,9 @@ export class OrderService {
       let totalAmount = 0;
 
       for (const item of cartItems) {
-        if (item.product.stock_quantity < item.quantity) {
+        if (item.product.stockQuantity < item.quantity) {
           throw new BadRequestException(
-            `Yetersiz stok: ${item.product.name} ürünü için mevcut stok ${item.product.stock_quantity}, istenen adet ${item.quantity}.`,
+            `Yetersiz stok: ${item.product.name} ürünü için mevcut stok ${item.product.stockQuantity}, istenen adet ${item.quantity}.`,
           );
         }
         totalAmount += Number(item.product.price) * item.quantity;
@@ -67,7 +67,7 @@ export class OrderService {
         await tx.product.update({
           where: { id: item.productId },
           data: {
-            stock_quantity: {
+            stockQuantity: {
               decrement: item.quantity,
             },
           },

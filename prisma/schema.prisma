@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -13,77 +11,136 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
+enum UserRole {
   USER
+  MODERATOR
   ADMIN
 }
 
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 model User {
-  id           String     @id @default(uuid())
+  id           String   @id @default(uuid())
   name         String
   surname      String
-  fullName     String
-  username     String     @unique
-  email        String     @unique
+  fullName     String   @map("full_name")
+  username     String   @unique
+  email        String   @unique
   password     String
-  refreshToken String?
-  role         Role       @default(USER)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  cartItems    CartItem[]
-  orders       Order[]
+  refreshToken String?  @map("refresh_token")
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  cartItems CartItem[]
+  orders    Order[]
+  comments  ProductComment[]
+  userRoles UserRoleMapping[]
+
+  @@map("users")
+}
+
+model Role {
+  id   String @id @default(uuid())
+  name String @unique
+
+  permissions RolePermission[]
+  users       UserRoleMapping[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId        String @map("role_id")
+  permissionKey String @map("permission_key")
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionKey])
+  @@map("roles_permissions")
+}
+
+model UserRoleMapping {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("users_roles")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("categories")
 }
 
 model Product {
-  id              String           @id @default(uuid())
-  name            String
-  description     String
-  price           Decimal
-  stock_quantity  Int
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  category        Category?        @relation(fields: [categoryId], references: [id])
-  categoryId      String?
+  id               String   @id @default(uuid())
+  categoryId       String?  @map("category_id")
+  name             String
+  slug             String   @unique
+  shortDescription String   @map("short_description")
+  longDescription  String   @map("long_description")
+  price            Decimal
+  primaryPhotoUrl  String?  @map("primary_photo_url")
+  commentCount     Int      @default(0) @map("comment_count")
+  averageRating    Decimal  @default(0.0) @map("average_rating")
+  stockQuantity    Int      @default(0) @map("stock_quantity")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  category        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   productPhotos   ProductPhoto[]
   productComments ProductComment[]
   cartItems       CartItem[]
   orderItems      OrderItem[]
-}
 
-model Category {
-  id        String    @id @default(uuid())
-  name      String
-  slug      String    @unique
-  order     Int       @default(0)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  products  Product[]
+  @@map("products")
 }
 
 model ProductPhoto {
   id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  isPrimary Boolean  @default(false) @map("is_primary")
   url       String
   size      Int
-  isPrimary Boolean  @default(false)
   order     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_photos")
 }
 
 model ProductComment {
   id        String   @id @default(uuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId    String
-  title     String
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  title     String?
   content   String?
   rating    Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_comments")
 }
@@ -99,15 +156,8 @@ model CartItem {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, productId])
   @@map("cart_items")
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  DELIVERED
-  CANCELLED
 }
 
 model Order {

@@ -38,7 +38,7 @@ export class CartService {
       );
     }
 
-    if (product.stock_quantity <= 0) {
+    if (product.stockQuantity <= 0) {
       throw new BadRequestException('Product is out of stock');
     }
 
@@ -50,9 +50,9 @@ export class CartService {
       const newQuantity =
         existingCartItem.quantity + createCartItemDto.quantity;
 
-      if (newQuantity > product.stock_quantity) {
+      if (newQuantity > product.stockQuantity) {
         throw new BadRequestException(
-          `Insufficient stock. Maximum available: ${product.stock_quantity}`,
+          `Insufficient stock. Maximum available: ${product.stockQuantity}`,
         );
       }
 
@@ -68,9 +68,9 @@ export class CartService {
       return updatedCartItem;
     }
 
-    if (createCartItemDto.quantity > product.stock_quantity) {
+    if (createCartItemDto.quantity > product.stockQuantity) {
       throw new BadRequestException(
-        `Insufficient stock. Maximum available: ${product.stock_quantity}`,
+        `Insufficient stock. Maximum available: ${product.stockQuantity}`,
       );
     }
 
@@ -114,9 +114,9 @@ export class CartService {
       throw new NotFoundException(`Cart item with ID ${id} not found`);
     }
 
-    if (updateCartItemDto.quantity > cartItem.product.stock_quantity) {
+    if (updateCartItemDto.quantity > cartItem.product.stockQuantity) {
       throw new BadRequestException(
-        `Insufficient stock. Maximum available: ${cartItem.product.stock_quantity}`,
+        `Insufficient stock. Maximum available: ${cartItem.product.stockQuantity}`,
       );
     }
 

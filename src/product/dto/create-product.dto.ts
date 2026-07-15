@@ -20,15 +20,25 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsPositive()
-  @Type(() => Number) // Gelen veriyi otomatik olarak number tipine dönüştürür
+  @Type(() => Number)
   price!: number;
 
   @IsNumber()
   @Min(0)
-  @Type(() => Number) // Gelen veriyi otomatik olarak number tipine dönüştürür
+  @Type(() => Number)
   stock!: number;
 
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  shortDescription!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  longDescription!: string;
+  stockQuantity: number | undefined;
+  slug!: string;
 }

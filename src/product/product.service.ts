@@ -2,9 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from 'generated/prisma/client';
-
-type ProductRecord = Record<string, unknown>;
+import { Prisma, Product } from 'generated/prisma/client';
 
 @Injectable()
 export class ProductService {
@@ -17,7 +15,7 @@ export class ProductService {
     }
   }
 
-  async create(createProductDto: CreateProductDto): Promise<ProductRecord> {
+  async create(createProductDto: CreateProductDto): Promise<Product> {
     if (createProductDto.categoryId) {
       const categoryExists = await this.prisma.category.findUnique({
         where: { id: createProductDto.categoryId },
@@ -28,20 +26,20 @@ export class ProductService {
 
     const productData: Prisma.ProductCreateInput = {
       name: createProductDto.name,
-      description: createProductDto.description,
-
+      shortDescription: createProductDto.shortDescription,
+      longDescription: createProductDto.longDescription,
       price: new Prisma.Decimal(createProductDto.price),
-
-      stock_quantity: createProductDto.stock,
+      stockQuantity: createProductDto.stockQuantity,
       category: createProductDto.categoryId
         ? { connect: { id: createProductDto.categoryId } }
         : undefined,
+      slug: createProductDto.slug,
     };
 
     return this.prisma.product.create({ data: productData });
   }
 
-  findAll(): Promise<ProductRecord[]> {
+  findAll(): Promise<Product[]> {
     return this.prisma.product.findMany({
       include: {
         category: true,
@@ -50,7 +48,7 @@ export class ProductService {
     });
   }
 
-  async findOne(id: string): Promise<ProductRecord> {
+  async findOne(id: string): Promise<Product> {
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: {
@@ -68,17 +66,17 @@ export class ProductService {
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
-  ): Promise<ProductRecord> {
+  ): Promise<Product> {
     await this.ensureProductExists(id);
 
     const updateData: Prisma.ProductUpdateInput = {
       name: updateProductDto.name,
-      description: updateProductDto.description,
-
+      shortDescription: updateProductDto.shortDescription,
+      longDescription: updateProductDto.longDescription,
       price: updateProductDto.price
         ? new Prisma.Decimal(updateProductDto.price.toString())
         : undefined,
-      stock_quantity: updateProductDto.stock,
+      stockQuantity: updateProductDto.stockQuantity,
       category: updateProductDto.categoryId
         ? { connect: { id: updateProductDto.categoryId } }
         : undefined,
@@ -90,7 +88,7 @@ export class ProductService {
     });
   }
 
-  async remove(id: string): Promise<ProductRecord> {
+  async remove(id: string): Promise<Product> {
     await this.ensureProductExists(id);
 
     return this.prisma.product.delete({
