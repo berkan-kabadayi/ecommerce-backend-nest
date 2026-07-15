@@ -1,49 +1,68 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-type CategoryRecord = Record<string, unknown>;
-
-interface PrismaCategoryClient {
-  create(args: { data: CreateCategoryDto }): Promise<CategoryRecord>;
-  findMany(args?: {
-    orderBy?: { order: 'asc' | 'desc' };
-  }): Promise<CategoryRecord[]>;
-  findUnique(args: { where: { id: string } }): Promise<CategoryRecord | null>;
-  update(args: {
-    where: { id: string };
-    data: UpdateCategoryDto;
-  }): Promise<CategoryRecord>;
-  delete(args: { where: { id: string } }): Promise<CategoryRecord>;
+function isErrorWithCode(error: unknown): error is { code: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof (error as Record<string, unknown>).code === 'string'
+  );
 }
 
 @Injectable()
 export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
-  private get categoryClient(): PrismaCategoryClient {
-    return (this.prisma as unknown as { category: PrismaCategoryClient })
-      .category;
+  async create(dto: CreateCategoryDto) {
+    try {
+      return await this.prisma.category.create({ data: dto });
+    } catch (error) {
+      if (isErrorWithCode(error) && error.code === 'P2002') {
+        throw new ConflictException('This slug is already in use.');
+      }
+      throw error;
+    }
   }
 
-  async create(dto: CreateCategoryDto): Promise<CategoryRecord> {
-    return this.categoryClient.create({ data: dto });
+  async findAll() {
+    return this.prisma.category.findMany({
+      orderBy: { order: 'asc' },
+    });
   }
 
-  async findAll(): Promise<CategoryRecord[]> {
-    return this.categoryClient.findMany({ orderBy: { order: 'asc' } });
+  async findOne(id: string) {
+    const category = await this.prisma.category.findUnique({ where: { id } });
+    if (!category) {
+      throw new NotFoundException('Category not found.');
+    }
+    return category;
   }
 
-  async findOne(id: string): Promise<CategoryRecord | null> {
-    return this.categoryClient.findUnique({ where: { id } });
+  async update(id: string, dto: UpdateCategoryDto) {
+    await this.findOne(id);
+
+    try {
+      return await this.prisma.category.update({
+        where: { id },
+        data: dto,
+      });
+    } catch (error) {
+      if (isErrorWithCode(error) && error.code === 'P2002') {
+        throw new ConflictException('This slug is already in use.');
+      }
+      throw error;
+    }
   }
 
-  async update(id: string, dto: UpdateCategoryDto): Promise<CategoryRecord> {
-    return this.categoryClient.update({ where: { id }, data: dto });
-  }
-
-  async remove(id: string): Promise<CategoryRecord> {
-    return this.categoryClient.delete({ where: { id } });
+  async remove(id: string) {
+    await this.findOne(id);
+    return this.prisma.category.delete({ where: { id } });
   }
 }
