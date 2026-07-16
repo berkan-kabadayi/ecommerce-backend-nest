@@ -1,20 +1,17 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Request } from 'express'; // Express Request'ini import ediyoruz
+import { Request } from 'express';
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-// 1. Tip güvenliği için Body'nin şeklini tanımlıyoruz
 interface RefreshTokenBody {
   refresh_token: string;
 }
 
-// 2. Request'in yapısını genişletiyoruz (Express Request + bizim beklediğimiz body)
 interface RefreshRequest extends Request {
   body: RefreshTokenBody;
 }
 
-// 3. Payload için tip tanımı (Opsiyonel ama iyi pratik)
 interface JwtPayload {
   sub: string;
   username: string;

@@ -10,20 +10,20 @@ import {
 import { Request } from 'express';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '.././auth/guards/auth/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+import { PERMISSIONS } from '../auth/constants/permissions.constant';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 interface AuthenticatedRequest extends Request {
   user: {
     sub: string;
     username: string;
-    role: 'ADMIN' | 'USER';
   };
 }
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -33,7 +33,7 @@ export class UserController {
   }
 
   @Get('all')
-  @Roles('ADMIN')
+  @RequirePermissions(PERMISSIONS.USERS.READ_CONFIDENTIAL)
   getAllUsersConfidential() {
     return {
       message: 'Only administrators have access to this confidential data!',
@@ -41,16 +41,19 @@ export class UserController {
   }
 
   @Get()
+  @RequirePermissions(PERMISSIONS.USERS.READ)
   getAllUsers() {
     return this.userService.findAll();
   }
 
   @Get(':id')
+  @RequirePermissions(PERMISSIONS.USERS.READ)
   getUser(@Param('id') id: string) {
     return this.userService.findById(id);
   }
 
   @Patch(':id')
+  @RequirePermissions(PERMISSIONS.USERS.UPDATE)
   updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }

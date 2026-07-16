@@ -25,21 +25,21 @@ export class AuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || typeof authHeader !== 'string') {
-      throw new UnauthorizedException('Token Bulunamadı');
+      throw new UnauthorizedException('Token Not Found');
     }
 
     const token = authHeader.split(' ')[1];
     if (!token) {
-      throw new UnauthorizedException('Geçersiz Token');
+      throw new UnauthorizedException('Invalid Token');
     }
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
-        secret: process.env.JWT_SECRET || 'gizli_anahtar',
+        secret: process.env.JWT_SECRET || 'secret_key',
       });
       request.user = payload;
     } catch {
-      throw new UnauthorizedException('Geçersiz Token');
+      throw new UnauthorizedException('Invalid Token');
     }
     return true;
   }

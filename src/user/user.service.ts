@@ -63,14 +63,14 @@ export class UserService {
         username: true,
         email: true,
         role: true,
-        refreshToken: true, // <-- HATA VERDİREN YER BURASIYDI, EKLENDİ.
+        refreshToken: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
     if (!user) {
-      throw new NotFoundException('Kullanıcı bulunamadı.');
+      throw new NotFoundException('User not found.');
     }
     return user;
   }
@@ -78,7 +78,7 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const currentUser = await this.prisma.user.findUnique({ where: { id } });
     if (!currentUser) {
-      throw new NotFoundException('Kullanıcı bulunamadı.');
+      throw new NotFoundException('User not found.');
     }
 
     const dataToUpdate: UserUpdatePayload = { ...updateUserDto };
