@@ -6,7 +6,7 @@ import {
 import { CreateCartItemDto } from './dto/create-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CartItem, Prisma } from 'generated/prisma/client';
+import { CartItem } from 'generated/prisma/client';
 
 @Injectable()
 export class CartService {
@@ -24,66 +24,41 @@ export class CartService {
     }
   }
 
-  async create(
-    userId: string,
-    createCartItemDto: CreateCartItemDto,
-  ): Promise<CartItem> {
-    const product = await this.prisma.product.findUnique({
-      where: { id: createCartItemDto.productId },
-    });
-
-    if (!product) {
-      throw new NotFoundException(
-        `Product with ID ${createCartItemDto.productId} not found`,
-      );
-    }
-
-    if (product.stockQuantity <= 0) {
-      throw new BadRequestException('Product is out of stock');
-    }
-
-    const existingCartItem = await this.prisma.cartItem.findFirst({
-      where: { userId, productId: createCartItemDto.productId },
-    });
-
-    if (existingCartItem) {
-      const newQuantity =
-        existingCartItem.quantity + createCartItemDto.quantity;
-
-      if (newQuantity > product.stockQuantity) {
-        throw new BadRequestException(
-          `Insufficient stock. Maximum available: ${product.stockQuantity}`,
-        );
-      }
-
-      const updateData = {
-        quantity: newQuantity,
-      };
-
-      const updatedCartItem = await this.prisma.cartItem.update({
-        where: { id: existingCartItem.id },
-        data: updateData,
+  async create(userId: string, dto: CreateCartItemDto): Promise<CartItem> {
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: dto.productId },
       });
 
-      return updatedCartItem;
-    }
+      if (!product || product.stockQuantity <= 0) {
+        throw new BadRequestException('Product is out of stock or not found');
+      }
 
-    if (createCartItemDto.quantity > product.stockQuantity) {
-      throw new BadRequestException(
-        `Insufficient stock. Maximum available: ${product.stockQuantity}`,
-      );
-    }
+      const existingItem = await tx.cartItem.findFirst({
+        where: { userId, productId: dto.productId },
+      });
 
-    const cartItemData: Prisma.CartItemCreateInput = {
-      quantity: createCartItemDto.quantity,
-      user: { connect: { id: userId } },
-      product: { connect: { id: createCartItemDto.productId } },
-    };
+      const newQuantity = (existingItem?.quantity || 0) + dto.quantity;
 
-    const newCartItem = await this.prisma.cartItem.create({
-      data: cartItemData,
+      if (newQuantity > product.stockQuantity) {
+        throw new BadRequestException('Insufficient stock.');
+      }
+
+      if (existingItem) {
+        return tx.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: newQuantity },
+        });
+      }
+
+      return tx.cartItem.create({
+        data: {
+          quantity: dto.quantity,
+          userId,
+          productId: dto.productId,
+        },
+      });
     });
-    return newCartItem;
   }
 
   async findAll(userId: string) {

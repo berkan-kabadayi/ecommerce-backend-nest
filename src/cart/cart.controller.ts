@@ -14,12 +14,17 @@ import { CreateCartItemDto } from './dto/create-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
 
 import { AuthGuard, AuthRequest } from '../auth/guards/auth/auth.guard';
+import { PermissionsGuard } from 'src/auth/guards/auth/permissions.guard';
+import { RequirePermissions } from 'src/auth/decorators/permissions.decorator';
+import { PERMISSIONS } from 'src/auth/constants/permissions.constant';
+
 @Controller('cart-items')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, PermissionsGuard)
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Post()
+  @RequirePermissions(PERMISSIONS.CARTS.CREATE)
   async create(
     @Req() req: AuthRequest,
     @Body() createCartItemDto: CreateCartItemDto,
@@ -33,6 +38,7 @@ export class CartController {
   }
 
   @Get()
+  @RequirePermissions(PERMISSIONS.CARTS.READ_OWN)
   async findAll(@Req() req: AuthRequest) {
     const userId = req.user!.sub;
     const cartItems = await this.cartService.findAll(userId);
@@ -40,6 +46,7 @@ export class CartController {
   }
 
   @Delete()
+  @RequirePermissions(PERMISSIONS.CARTS.DELETE_OWN)
   async removeAll(@Req() req: AuthRequest) {
     const userId = req.user!.sub;
     const result = await this.cartService.removeAll(userId);
@@ -47,6 +54,7 @@ export class CartController {
   }
 
   @Patch(':id')
+  @RequirePermissions(PERMISSIONS.CARTS.UPDATE_OWN)
   async update(
     @Req() req: AuthRequest,
     @Param('id') id: string,
@@ -62,6 +70,7 @@ export class CartController {
   }
 
   @Delete(':id')
+  @RequirePermissions(PERMISSIONS.CARTS.DELETE_OWN)
   async remove(@Req() req: AuthRequest, @Param('id') id: string) {
     const userId = req.user!.sub;
     const deletedCartItem = await this.cartService.remove(userId, id);

@@ -17,9 +17,12 @@ export const PERMISSIONS = {
     UPDATE_OWN: 'orders:update:own',
     UPDATE_ANY: 'orders:update:any',
   },
+
   CARTS: {
     READ_OWN: 'carts:read:own',
+    CREATE: 'carts:create',
     UPDATE_OWN: 'carts:update:own',
+    DELETE_OWN: 'carts:delete:own',
   },
   COMMENTS: {
     READ: 'comments:read',
