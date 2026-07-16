@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { Prisma } from 'generated/prisma/client';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
@@ -21,12 +20,10 @@ export class OrderService {
     }
   }
 
-  async create(
-    userId: string,
-    createOrderDto: CreateOrderDto,
-  ): Promise<OrderRecord> {
-    void createOrderDto;
+  // createOrderDto bağımlılığını kaldırarak temizledik
+  async create(userId: string): Promise<OrderRecord> {
     const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Sepeti Getir
       const cartItems = await tx.cartItem.findMany({
         where: { userId },
         include: { product: true },
@@ -38,6 +35,7 @@ export class OrderService {
 
       let totalAmount = 0;
 
+      // 2. Stok Kontrolü (PDF-2 Sayfa 4)
       for (const item of cartItems) {
         if (item.product.stockQuantity < item.quantity) {
           throw new BadRequestException(
@@ -47,22 +45,25 @@ export class OrderService {
         totalAmount += Number(item.product.price) * item.quantity;
       }
 
-      const orderData: Prisma.OrderCreateInput = {
-        user: { connect: { id: userId } },
-        totalPrice: new Prisma.Decimal(totalAmount.toString()),
-        status: 'PENDING',
-      };
+      // 3. Siparişi Oluştur (PDF-2 Sayfa 4 Şeması)
+      const order = await tx.order.create({
+        data: {
+          user: { connect: { id: userId } },
+          totalPrice: new Prisma.Decimal(totalAmount.toString()),
+          status: 'PENDING',
+        },
+      });
 
-      const order = await tx.order.create({ data: orderData });
-
+      // 4. Sipariş Kalemlerini Aktar ve Stoğu Düş (PDF-2 Sayfa 4)
       for (const item of cartItems) {
-        const orderItemData: Prisma.OrderItemCreateInput = {
-          order: { connect: { id: order.id } },
-          product: { connect: { id: item.productId } },
-          quantity: item.quantity,
-          unitPrice: item.product.price,
-        };
-        await tx.orderItem.create({ data: orderItemData });
+        await tx.orderItem.create({
+          data: {
+            order: { connect: { id: order.id } },
+            product: { connect: { id: item.productId } },
+            quantity: item.quantity,
+            unitPrice: item.product.price,
+          },
+        });
 
         await tx.product.update({
           where: { id: item.productId },
@@ -74,6 +75,7 @@ export class OrderService {
         });
       }
 
+      // 5. Sepeti Boşalt (PDF-2 Sayfa 3)
       await tx.cartItem.deleteMany({
         where: { userId },
       });
@@ -92,6 +94,7 @@ export class OrderService {
       throw new BadRequestException('Sipariş oluşturma işlemi başarısız oldu.');
     }
 
+    // Unnecessary assertion uyarısını engellemek için doğrudan dönüyoruz
     return result;
   }
 
@@ -108,6 +111,7 @@ export class OrderService {
 
     return orders;
   }
+
   async findOne(id: string, userId: string): Promise<OrderRecord> {
     const order = await this.prisma.order.findFirst({
       where: { id, userId },
@@ -126,19 +130,18 @@ export class OrderService {
 
     return order;
   }
+
   async update(
     id: string,
     updateOrderDto: UpdateOrderDto,
   ): Promise<OrderRecord> {
     await this.ensureOrderExists(id);
 
-    const updateData: Prisma.OrderUpdateInput = {
-      status: updateOrderDto.status,
-    };
-
     const updatedOrder = await this.prisma.order.update({
       where: { id },
-      data: updateData,
+      data: {
+        status: updateOrderDto.status,
+      },
       include: {
         orderItems: {
           include: { product: true },

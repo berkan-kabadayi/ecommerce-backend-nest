@@ -12,6 +12,7 @@ export const PERMISSIONS = {
     DELETE: 'products:delete',
   },
   ORDERS: {
+    CREATE: 'orders:create',
     READ_OWN: 'orders:read:own',
     READ_ANY: 'orders:read:any',
     UPDATE_OWN: 'orders:update:own',
