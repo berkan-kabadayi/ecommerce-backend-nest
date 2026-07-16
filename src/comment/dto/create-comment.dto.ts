@@ -14,11 +14,11 @@ export class CreateCommentDto {
 
   @IsString()
   @IsOptional()
-  title?: string = '';
+  title?: string;
 
   @IsString()
   @IsOptional()
-  content?: string = '';
+  content?: string;
 
   @IsInt()
   @Type(() => Number)
