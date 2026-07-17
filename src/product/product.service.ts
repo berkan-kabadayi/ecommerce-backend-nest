@@ -7,7 +7,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from 'generated/prisma/browser';
+import { Prisma } from 'generated/prisma/client';
 
 function isErrorWithCode(error: unknown): error is { code: string } {
   return (
